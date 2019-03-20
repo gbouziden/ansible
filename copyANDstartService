@@ -1,0 +1,24 @@
+---
+- hosts: hostgroup
+  gather_facts: yes
+  remote_user: root
+  become: yes
+  become_method: sudo
+  serial: 2
+  ignore_errors: no
+  any_errors_fatal: true
+  tasks:
+    - name: "Copy configuration Files"
+      copy:
+        src: /etc/ansible/playbooks/system.yml
+        dest: /etc/metricbeat/modules.d/system.yml
+        owner: root
+        group: root
+        mode: 644
+
+    - name: Start Metricbeat
+      service:
+        name: metricbeat
+        state: restarted
+    - pause:
+       seconds: 5
