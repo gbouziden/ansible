@@ -1,0 +1,72 @@
+---
+- hosts: host_group1,hostgroup2
+  gather_facts: yes
+  remote_user: root
+  become: yes
+  become_method: sudo
+  serial: 2 # does two systems from a host group at a time.
+  ignore_errors: no
+  any_errors_fatal: true
+  tasks:
+
+#In case you have something locking yum
+#  - name: clearing locks
+#    command: pkill yum
+#    ignore_errors: true
+
+#Just in case
+#  - name: complete
+#    command: yum-complete-transaction --cleanup-only -y
+#    ignore_errors: true
+
+#Just in case
+#  - name: cleandupes
+#    command: package-cleanup --cleandupes -y
+#    ignore_errors: true
+
+
+# RUN YUM
+  - name: yum update
+    yum:
+      name: "*"
+      state: latest
+      exclude: nvidia* python-* kmod*   # exclude packages
+      skip_broken: yes
+
+# LIST UPDATED PACKAGES
+  - name: list updated
+    shell: rpm -qa --last | grep "$(date +%a\ %d\ %b\ %Y)" |cut -f 1 -d " "
+    register: result
+    args:
+      warn: no
+
+  - name: Output
+    debug: msg="{{ result.stdout_lines }}"
+
+# CHECK FOR REBOOT
+  - name: checking for reboot requirement
+    shell: LAST_KERNEL=$(rpm -q --last kernel | awk 'NR==1{sub(/kernel-/,""); print $1}'); CURRENT_KERNEL=$(uname -r); if [ $LAST_KERNEL != $CURRENT_KERNEL ]; then echo 'reboot'; else echo 'no'; fi
+    ignore_errors: true
+    register: reboot_hint
+
+# EXECUTE REBOOT
+  - name: Rebooting ...
+    command: shutdown -r now "Reboot required"
+    async: 0
+    poll: 0
+    ignore_errors: true
+    when: reboot_hint.stdout.find("reboot") != -1
+    register: rebooting
+
+  - name: Wait for thing to reboot...
+    local_action: wait_for_host={{ ansible_ssh_host | default(inventory_hostname) }} state=started port=22 delay=30 timeout=300 connect_timeout=15
+    when: rebooting is changed
+    
+# In case you want to reboot no matter what    
+#  - name: reboot
+#    command: /sbin/shutdown -r 0
+#    async: 0
+#    poll: 0
+#    ignore_errors: true
+#  - pause:
+#      minutes: 2
