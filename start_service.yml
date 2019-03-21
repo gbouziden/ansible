@@ -1,0 +1,16 @@
+---
+- hosts: hostgroup
+  gather_facts: yes
+  remote_user: root
+  become: yes
+  become_method: sudo
+  serial: 2
+  ignore_errors: no
+  any_errors_fatal: true
+  tasks:
+  - name: Start Metricbeat
+    service:
+      name: metricbeat
+      state: started
+  - pause:
+     seconds: 10
