@@ -1,0 +1,38 @@
+# Installing Metricbeat version 7.2 on hosts. All hosts are RHEL6/7, CentOS6/7
+
+---
+- hosts: hostGroup1, hostGroup2, hostGroup3
+  gather_facts: yes
+  remote_user: root
+  become: yes
+  become_method: sudo
+  serial: 4                         #I was doing 4 at a time but this can be increased/decreased/removed
+  any_errors_fatal: true
+  tasks:
+
+  - name: Install Metricbeat agent from remote repo
+    yum:
+      name: https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-7.2.0-x86_64.rpm
+      state: present
+
+  - name: Delete Configuration File
+    command: rm -f /etc/metricbeat/metricbeat.yml            #Don't judge me
+    args:
+      warn: no
+
+  - name: Copy Configuration File                            #Copy standard config from local to remote host
+    copy:
+      src: /tmp/metricbeat.yml
+      dest: /etc/metricbeat/
+      owner: root
+      group: root
+      mode: '0600'
+
+  - name: Set up Kibana Dashboards
+    command: metricbeat setup --dashboards
+
+  - name: Start Metricbeat
+    service:
+      name: metricbeat
+      state: started
+      enabled: yes
