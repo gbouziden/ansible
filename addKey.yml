@@ -1,0 +1,10 @@
+---
+- hosts: hostgroup1,hostgroup2
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: copy id_rsa.pub to known hosts
+      lineinfile:
+        path: /root/.ssh/known_hosts
+        line: 'ssh-rsa user@ansible-host'
