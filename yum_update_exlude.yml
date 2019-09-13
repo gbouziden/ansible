@@ -4,7 +4,7 @@
   remote_user: root
   become: yes
   become_method: sudo
-  serial: 2 # does two systems from a host group at a time.
+  serial: 2 # does two systems from a host group at a time. You can increase, decrease, or remove.
   ignore_errors: no
   any_errors_fatal: true
   tasks:
