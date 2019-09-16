@@ -7,4 +7,4 @@
     - name: copy id_rsa.pub to known hosts
       lineinfile:
         path: /root/.ssh/known_hosts
-        line: 'ssh-rsa user@ansible-host'
+        line: 'ssh-rsa thisisyourkey user@ansible-host'
