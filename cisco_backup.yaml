@@ -1,0 +1,22 @@
+- name: Gather facts from Cisco routers
+  hosts: cisco
+  connection: network_cli
+  gather_facts: no
+
+  tasks:
+
+  - name: Gather router facts
+    ios_facts:
+
+  - name: Display version
+    debug:
+      msg: "The IOS version is: {{ ansible_net_version }}"
+
+
+  - name: Display serial number
+    debug:
+      msg: "The serial number is:{{ ansible_net_serialnum  }}"
+      
+  - name: Backup router config from cisco host group
+    ios_config:
+      backup: yes
